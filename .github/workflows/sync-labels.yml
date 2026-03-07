@@ -1,0 +1,72 @@
+name: Sync Labels to All Repos
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'labels/labels.json'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout .github repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Check labels file
+        run: |
+          echo "Current directory: $(pwd)"
+          ls -R
+          echo "-----------------------------------"
+          if [ -f "$GITHUB_WORKSPACE/labels/labels.json" ]; then
+            echo "✅ labels.json exists at $GITHUB_WORKSPACE/labels/labels.json"
+          else
+            echo "❌ Error: labels/labels.json not found!"
+            exit 1
+          fi
+
+      - name: Get all repositories
+        id: get_repos
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_NAME: digglelens
+        run: |
+          REPOS=$(gh repo list $ORG_NAME --no-archived --limit 100 --json name --jq '.[].name')
+          
+          echo "Found repositories:"
+          echo "$REPOS"
+          
+          {
+            echo "REPOS<<EOF"
+            echo "$REPOS"
+            echo "EOF"
+          } >> $GITHUB_ENV
+
+      - name: Sync Labels
+        env:
+          GITHUB_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_NAME: digglelens
+        run: |
+          REAL_PATH=$(find $GITHUB_WORKSPACE -name "labels.json" | head -n 1)
+          
+          echo "🔍 Found labels.json at: $REAL_PATH"
+
+          if [ -z "$REAL_PATH" ]; then
+            echo "❌ Error: Could not find labels.json anywhere in the workspace!"
+            exit 1
+          fi
+
+          for REPO in $REPOS; do
+            if [ -n "$REPO" ]; then
+              echo "---------------------------------------------------"
+              echo "🚀 Syncing labels for $ORG_NAME/$REPO"
+              
+              npx github-label-sync --access-token $GITHUB_TOKEN --labels "$REAL_PATH" "$ORG_NAME/$REPO" --allow-added-labels
+            fi
+          done

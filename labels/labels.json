@@ -1,0 +1,77 @@
+[
+  {
+    "name": "Type: Bug",
+    "color": "d73a4a",
+    "description": "Something isn't working"
+  },
+  {
+    "name": "Type: Feature",
+    "color": "a2eeef",
+    "description": "New feature or request"
+  },
+  {
+    "name": "Type: Enhancement",
+    "color": "0e8a16",
+    "description": "Improvements or updates to existing features"
+  },
+  {
+    "name": "Type: Documentation",
+    "color": "0075ca",
+    "description": "Improvements or additions to documentation"
+  },
+  {
+    "name": "Type: Refactor",
+    "color": "e4e669",
+    "description": "Code change that neither fixes a bug nor adds a feature"
+  },
+  {
+    "name": "Type: Test",
+    "color": "d4c5f9",
+    "description": "Adding or updating tests"
+  },
+  {
+    "name": "Type: Chore",
+    "color": "cfd3d7",
+    "description": "Build process or auxiliary tool changes"
+  },
+  {
+    "name": "Priority: Critical",
+    "color": "b60205",
+    "description": "Urgent, needs immediate attention"
+  },
+  {
+    "name": "Priority: High",
+    "color": "d93f0b",
+    "description": "Must be fixed ASAP"
+  },
+  {
+    "name": "Priority: Medium",
+    "color": "fbca04",
+    "description": "Normal priority"
+  },
+  {
+    "name": "Priority: Low",
+    "color": "c2e0c6",
+    "description": "Low priority, nice to have"
+  },
+  {
+    "name": "Status: Blocked",
+    "color": "000000",
+    "description": "Blocked by other tasks or dependencies"
+  },
+  {
+    "name": "Status: Help Wanted",
+    "color": "008672",
+    "description": "Extra attention is needed"
+  },
+  {
+    "name": "Status: Review Needed",
+    "color": "f9d0c4",
+    "description": "Ready for code review"
+  },
+  {
+    "name": "Status: On Hold",
+    "color": "808080",
+    "description": "Work paused explicitly"
+  }
+]

@@ -1,0 +1,72 @@
+name: Sync Issue Templates to All Repos
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout .github repo
+        uses: actions/checkout@v4
+
+      - name: Get all repositories
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_NAME: digglelens
+        run: |
+          REPOS=$(gh repo list $ORG_NAME --no-archived --limit 100 --json name --jq '.[].name')
+
+          echo "Found repositories:"
+          echo "$REPOS"
+
+          {
+            echo "REPOS<<EOF"
+            echo "$REPOS"
+            echo "EOF"
+          } >> $GITHUB_ENV
+
+      - name: Sync Issue Templates
+        env:
+          GH_TOKEN: ${{ secrets.ORG_ADMIN_TOKEN }}
+          ORG_NAME: digglelens
+        run: |
+          for REPO in $REPOS; do
+            if [ -n "$REPO" ]; then
+              echo "---------------------------------------------------"
+              echo "Syncing issue templates for $ORG_NAME/$REPO"
+
+              for FILE in ISSUE_TEMPLATE/*; do
+                FILENAME=$(basename "$FILE")
+                DEST_PATH=".github/ISSUE_TEMPLATE/$FILENAME"
+
+                echo "  -> $FILENAME"
+
+                SHA=$(gh api "repos/$ORG_NAME/$REPO/contents/$DEST_PATH" --jq '.sha' 2>/dev/null || echo "")
+                CONTENT=$(base64 -w 0 "$FILE")
+
+                if [ -n "$SHA" ]; then
+                  PAYLOAD=$(jq -n \
+                    --arg msg "chore: sync issue templates from .github" \
+                    --arg content "$CONTENT" \
+                    --arg sha "$SHA" \
+                    '{message: $msg, content: $content, sha: $sha}')
+                else
+                  PAYLOAD=$(jq -n \
+                    --arg msg "chore: sync issue templates from .github" \
+                    --arg content "$CONTENT" \
+                    '{message: $msg, content: $content}')
+                fi
+
+                gh api "repos/$ORG_NAME/$REPO/contents/$DEST_PATH" \
+                  --method PUT \
+                  --input - <<< "$PAYLOAD" \
+                  && echo "    OK" \
+                  || echo "    FAILED: $FILENAME -> $REPO"
+              done
+            fi
+          done
